@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+<body>
+<div class="content">
+  <div class="header"></div>
+  <div class="wrap">
+   <div class="left_drag">
+     <ul class="list-group" >
+       <li class="list-group-item" v-for="item in dragTheme" :class="[item.className]">
+         <label>{{item.content}}</label>
+         <span class="btn">拖动</span>
+       </li>
+     </ul>
+   </div>
+   <form action="index.php" class="form" method="post">
+	   <div class="right_page">
+		    <ul class="accept_box">
+		      <li class="placehold">请拖拽到这里</li>
+		    </ul>
+		    <div class="submit"><button>提交</button></div>
+	   </div>
+    </form>
+  </div>
+</div>
+<script type="text/javascript" src="js/jquery.js"></script>	
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+<script type="text/javascript">
+ var vm=new Vue({
+     el:".wrap",
+     data:{
+     	dragTheme:[
+     	  {content:"文章大标题",className:'big_tittle'},
+     	  {content:"文章小标题",className:'little_tittle'},
+     	  {content:"文章图片容器",className:'photo_tittle'},
+     	  {content:"文章日期",className:'data_tittle'},
+     	  {content:"文章内容",className:'article_tittle'}
+     	],
+     	big_tittle:""
+     }
+  })
+ $(function(){
+   $(".list-group .list-group-item").draggable({
+   	  helper:'clone',
+   	  appendTo:'body',
+   	  revert:"invalid"
+   })
+   $(".right_page .accept_box").droppable({
+   	 accept:'.list-group-item',
+   	 drop:function(event,ui){
+   	 	var txt=ui.draggable.find("label").text()
+   	 	$(this).find(".placehold").remove()
+   	 	var _it=$("<li></li>")
+   	    _it.addClass("added").appendTo(this)
+   	    var newClassName=ui.draggable.attr('class').replace(/(list-group-item|-handle|ui-draggable|ui-draggable-handle|\s)/g,'')//提取对应的class
+   	    _it.addClass(newClassName+"_")
+   	      var child;
+   	          child="<div class='oprate'><span class='edit'>修改</span><span class='save'>保存</span><span class='delete'>删除</span></div>"
+	   	      child+="<div class='theme_tittle'>请添加"+txt+"</div>"
+            if(newClassName=='photo_tittle'){
+                child+="<div class='photo_box'><input type='file' name="+newClassName+"  accept='image/*' id='upload' >"
+                child+="<img src=''>"
+            }else if(newClassName=='article_tittle'){
+	   	        child+="<textarea name="+newClassName+" rows='10' class='article_area' ></textarea>"
+            }else{
+            	child+="<input type='text' class='input' name="+newClassName+"></input>"
+            }
+   	    _it.append(child)
+   	   
+   	 } 
+   })
+   var big_tittle_flag=false;
+   var big_tittle_edit_first=true
+   $(document).on("click",'.oprate .edit',function(){ //编辑
+       if($(this).parent().parent().find('.input').length>0){
+       	var input=$(this).parent().parent().find('.input')
+       	 input.attr("readonly",false)
+         input.css("background","none")
+       }
+        if($(this).parent().parent().find('textarea').length>0){
+         var input=$(this).parent().parent().find('textarea')
+       	 input.attr("disabled",false)
+         input.css("background","none")
+       }
+
+   })
+   $(document).on("click",'.oprate .save',function(){ //保存
+   	   	if($(this).parent().parent().find('.input').length>0){
+   	   	var input=$(this).parent().parent().find('.input')
+       	 input.attr("readonly",true)
+         input.css("background","green")
+       }
+       if($(this).parent().parent().find('textarea').length>0){
+       	var input=$(this).parent().parent().find('textarea')
+       	 input.attr("disabled",true)
+         input.css("background","green")
+       }
+   })
+   $(document).on("click",'.oprate .delete',function(){ //删除
+   	   	 $(this).parent().parent().remove()
+   })
+   $(document).on("change",'#upload',function(){
+   	   	   var objUrl = getObjectURL(this.files[0]) ; //获取图片的路径，该路径不是图片在本地的路径
+			if (objUrl) {
+			$(this).parent().find('img').attr("src", objUrl) ; //将图片路径存入src中，显示出图片
+			}
+   })
+	   function getObjectURL(file) {
+			var url = null ;
+			if (window.createObjectURL!=undefined) { // basic
+			url = window.createObjectURL(file) ;
+			} else if (window.URL!=undefined) { // mozilla(firefox)
+			url = window.URL.createObjectURL(file) ;
+			} else if (window.webkitURL!=undefined) { // webkit or chrome
+			url = window.webkitURL.createObjectURL(file) ;
+			}
+			return url ;
+		}
+   $(document).on("click",'.submit button',function(event){
+         event.preventDefault()
+   	   	 $(".form").submit() //提交表单数据
+   })
+ })
+  
+</script>	
+</body>
+</html>
